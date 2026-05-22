@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">
+        Bienvenido, {{ current_user.nombre }} 👋
+    </h3>
+    <p class="text-muted">¿Qué espacio quieres reservar hoy?</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100 text-center p-4">
+            <div style="font-size: 3rem;">🖥️</div>
+            <h5 class="fw-bold mt-3">Escritorios</h5>
+            <p class="text-muted">Reserva tu lugar de trabajo para el día que vayas a la oficina.</p>
+            <a href="{{ url_for('main.escritorios') }}" class="btn btn-primary mt-auto">
+                Ver disponibilidad
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center p-4">
+            <div style="font-size: 3rem;">🏛️</div>
+            <h5 class="fw-bold mt-3">Salas de juntas</h5>
+            <p class="text-muted">Reserva una sala para tu reunión de equipo o con clientes.</p>
+            <a href="{{ url_for('main.salas') }}" class="btn btn-primary mt-auto">
+                Ver disponibilidad
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center p-4">
+            <div style="font-size: 3rem;">🚗</div>
+            <h5 class="fw-bold mt-3">Estacionamiento</h5>
+            <p class="text-muted">Reserva tu cajón de estacionamiento antes de salir de casa.</p>
+            <a href="{{ url_for('main.estacionamiento') }}" class="btn btn-primary mt-auto">
+                Ver disponibilidad
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3" style="color: #1F4E79;">📅 Mis próximas reservas</h5>
+            <p class="text-muted">No tienes reservas activas.</p>
+            <a href="{{ url_for('main.mis_reservas') }}" class="btn btn-outline-primary btn-sm">
+                Ver todas mis reservas
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3" style="color: #1F4E79;">ℹ️ Recordatorio</h5>
+            <p class="text-muted">Recuerda cancelar tu reserva con al menos <strong>2 horas de anticipación</strong> si no vas a asistir a la oficina.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
