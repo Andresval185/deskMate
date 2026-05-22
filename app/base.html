@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeskMate — {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: #1F4E79; }
+        .navbar-brand, .nav-link { color: white !important; }
+        .nav-link:hover { color: #D6E4F0 !important; }
+        .btn-primary { background-color: #1F4E79; border-color: #1F4E79; }
+        .btn-primary:hover { background-color: #2E75B6; border-color: #2E75B6; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .sidebar { background-color: #1F4E79; min-height: calc(100vh - 56px); }
+        .sidebar .nav-link { color: #D6E4F0 !important; padding: 12px 20px; }
+        .sidebar .nav-link:hover { background-color: #2E75B6; color: white !important; }
+        .sidebar .nav-link.active { background-color: #2E75B6; color: white !important; }
+    </style>
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="{{ url_for('main.inicio') }}">
+            🏢 DeskMate
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <span class="text-white">👤 {{ current_user.nombre }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar py-3">
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.endpoint == 'main.inicio' %}active{% endif %}" 
+                   href="{{ url_for('main.inicio') }}">
+                    <i class="bi bi-house me-2"></i>Inicio
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.escritorios' %}active{% endif %}"
+                   href="{{ url_for('main.escritorios') }}">
+                    <i class="bi bi-laptop me-2"></i>Escritorios
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.salas' %}active{% endif %}"
+                   href="{{ url_for('main.salas') }}">
+                    <i class="bi bi-people me-2"></i>Salas de juntas
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.estacionamiento' %}active{% endif %}"
+                   href="{{ url_for('main.estacionamiento') }}">
+                    <i class="bi bi-car-front me-2"></i>Estacionamiento
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.mis_reservas' %}active{% endif %}"
+                   href="{{ url_for('main.mis_reservas') }}">
+                    <i class="bi bi-calendar-check me-2"></i>Mis reservas
+                </a>
+            </nav>
+        </div>
+        <div class="col-md-10 py-4 px-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mt-3">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
