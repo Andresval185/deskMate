@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Salas de Juntas{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">🏛️ Reserva de Salas de Juntas</h3>
+    <p class="text-muted">Selecciona una fecha y la sala que necesitas reservar.</p>
+</div>
+
+<div class="card p-4 mb-4">
+    <form method="GET">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Fecha</label>
+                <input type="date" name="fecha" class="form-control"
+                       value="{{ fecha_sel }}" min="{{ hoy }}" required>
+            </div>
+            <div class="col-md-2 mt-2">
+                <button type="submit" class="btn btn-primary w-100">Ver disponibilidad</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row g-4">
+    {% for sala in salas %}
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <div style="font-size:2.5rem;" class="text-center">🏛️</div>
+            <h5 class="fw-bold text-center mt-2">{{ sala.nombre }}</h5>
+            <p class="text-muted text-center mb-1">
+                <i class="bi bi-people"></i> Capacidad: {{ sala.capacidad }} personas
+            </p>
+            <p class="text-muted text-center small">{{ sala.descripcion }}</p>
+            <hr>
+            <h6 class="fw-bold">Horarios del día:</h6>
+            {% if sala.reservas_dia %}
+                {% for r in sala.reservas_dia %}
+                <div class="alert alert-danger py-1 px-2 small mb-1">
+                    🔴 {{ r.hora_inicio }} — {{ r.hora_fin }} (Ocupado)
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-success py-1 px-2 small">
+                    🟢 Disponible todo el día
+                </div>
+            {% endif %}
+            <button class="btn btn-primary btn-sm mt-2"
+                    onclick="abrirModalSala('{{ sala.id }}', '{{ sala.nombre }}')">
+                Reservar esta sala
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal reserva sala -->
+<div class="modal fade" id="modalSala" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" style="color:#1F4E79;">Reservar sala</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.reservar_sala') }}">
+                <div class="modal-body">
+                    <p>Sala: <strong id="nombreSala"></strong></p>
+                    <input type="hidden" name="espacio_id" id="inputSalaId">
+                    <input type="hidden" name="fecha" value="{{ fecha_sel }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Hora de inicio</label>
+                        <input type="time" name="hora_inicio" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Hora de fin</label>
+                        <input type="time" name="hora_fin" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalSala(id, nombre) {
+    document.getElementById('nombreSala').textContent = nombre;
+    document.getElementById('inputSalaId').value = id;
+    var modal = new bootstrap.Modal(document.getElementById('modalSala'));
+    modal.show();
+}
+</script>
+{% endblock %}
