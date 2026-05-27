@@ -114,25 +114,56 @@ def reservar_escritorio():
     flash('¡Escritorio reservado exitosamente!', 'success')
     return redirect(url_for('main.mis_reservas'))
 
-# ── Salas ──────────────────────────────────────────────
+## ── Salas ──────────────────────────────────────────────
 @main.route('/salas')
 @login_required
 def salas():
-    espacios = Espacio.query.filter_by(tipo='sala', activo=True).all()
-    return render_template('salas.html', espacios=espacios)
+    hoy = date.today().isoformat()
+    fecha_sel = request.args.get('fecha', hoy)
+    salas = Espacio.query.filter_by(tipo='sala', activo=True).all()
 
-# ── Estacionamiento ────────────────────────────────────
-@main.route('/estacionamiento')
-@login_required
-def estacionamiento():
-    espacios = Espacio.query.filter_by(tipo='estacionamiento', activo=True).all()
-    return render_template('estacionamiento.html', espacios=espacios)
+    for sala in salas:
+        sala.reservas_dia = Reserva.query.filter_by(
+            espacio_id=sala.id,
+            fecha=fecha_sel,
+            estado='activa'
+        ).all()
 
-# ── Mis reservas ───────────────────────────────────────
-@main.route('/mis-reservas')
+    return render_template('salas.html',
+                           salas=salas,
+                           fecha_sel=fecha_sel,
+                           hoy=hoy)
+
+@main.route('/reservar-sala', methods=['POST'])
 @login_required
-def mis_reservas():
-    reservas = Reserva.query.filter_by(
-        user_id=current_user.id
-    ).order_by(Reserva.fecha.desc()).all()
-    return render_template('mis_reservas.html', reservas=reservas)
+def reservar_sala():
+    espacio_id = request.form.get('espacio_id')
+    fecha = request.form.get('fecha')
+    hora_inicio = request.form.get('hora_inicio')
+    hora_fin = request.form.get('hora_fin')
+
+    conflicto = Reserva.query.filter_by(
+        espacio_id=espacio_id,
+        fecha=fecha,
+        estado='activa'
+    ).filter(
+        Reserva.hora_inicio < hora_fin,
+        Reserva.hora_fin > hora_inicio
+    ).first()
+
+    if conflicto:
+        flash('Esta sala ya tiene una reserva en ese horario.', 'danger')
+        return redirect(url_for('main.salas'))
+
+    nueva = Reserva(
+        user_id=current_user.id,
+        espacio_id=espacio_id,
+        fecha=fecha,
+        hora_inicio=hora_inicio,
+        hora_fin=hora_fin,
+        estado='activa'
+    )
+    db.session.add(nueva)
+    db.session.commit()
+    flash('¡Sala reservada exitosamente!', 'success')
+    return redirect(url_for('main.mis_reservas'))
