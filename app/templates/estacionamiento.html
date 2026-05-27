@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Estacionamiento{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">🚗 Reserva de Estacionamiento</h3>
+    <p class="text-muted">Selecciona una fecha y el cajón que quieres reservar.</p>
+</div>
+
+<div class="card p-4 mb-4">
+    <form method="GET">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Fecha</label>
+                <input type="date" name="fecha" class="form-control"
+                       value="{{ fecha_sel }}" min="{{ hoy }}" required>
+            </div>
+            <div class="col-md-2 mt-2">
+                <button type="submit" class="btn btn-primary w-100">Ver disponibilidad</button>
+            </div>
+            <div class="col-md-6 mt-2 d-flex align-items-center gap-4">
+                <span><span class="badge" style="background:#198754">●</span> Disponible</span>
+                <span><span class="badge" style="background:#dc3545">●</span> Ocupado</span>
+                <span><span class="badge" style="background:#ffc107">●</span> Tu reserva</span>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if cajones %}
+<div class="card p-4">
+    <h5 class="fw-bold mb-1" style="color:#1F4E79;">🅿️ Planta Baja</h5>
+    <p class="text-muted small mb-3">Cajones 01 — 15</p>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for c in cajones %}
+            {% if c.descripcion == 'Cajón planta baja' %}
+                {% if c.mi_reserva %}
+                    <button class="btn btn-warning btn-sm cajon-btn" disabled title="Tu reserva">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% elif c.reservado %}
+                    <button class="btn btn-danger btn-sm cajon-btn" disabled title="Ocupado">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% else %}
+                    <button class="btn btn-success btn-sm cajon-btn"
+                            onclick="confirmarCajon('{{ c.id }}', '{{ c.nombre }}', '{{ fecha_sel }}')">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <h5 class="fw-bold mb-1" style="color:#1F4E79;">🅿️ Planta Alta</h5>
+    <p class="text-muted small mb-3">Cajones 16 — 30</p>
+    <div class="d-flex flex-wrap gap-2">
+        {% for c in cajones %}
+            {% if c.descripcion == 'Cajón planta alta' %}
+                {% if c.mi_reserva %}
+                    <button class="btn btn-warning btn-sm cajon-btn" disabled title="Tu reserva">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% elif c.reservado %}
+                    <button class="btn btn-danger btn-sm cajon-btn" disabled title="Ocupado">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% else %}
+                    <button class="btn btn-success btn-sm cajon-btn"
+                            onclick="confirmarCajon('{{ c.id }}', '{{ c.nombre }}', '{{ fecha_sel }}')">
+                        🚗 {{ c.nombre }}
+                    </button>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Selecciona una fecha para ver la disponibilidad de cajones.
+</div>
+{% endif %}
+
+<!-- Modal confirmación -->
+<div class="modal fade" id="modalCajon" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" style="color:#1F4E79;">Confirmar reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Confirmas la reserva del <strong id="nombreCajon"></strong> para el día <strong>{{ fecha_sel }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('main.reservar_estacionamiento') }}">
+                    <input type="hidden" name="espacio_id" id="inputCajonId">
+                    <input type="hidden" name="fecha" value="{{ fecha_sel }}">
+                    <button type="submit" class="btn btn-primary">Confirmar reserva</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cajon-btn { width: 110px; height: 50px; font-size: 11px; font-weight: 600; }
+</style>
+
+<script>
+function confirmarCajon(id, nombre, fecha) {
+    document.getElementById('nombreCajon').textContent = nombre;
+    document.getElementById('inputCajonId').value = id;
+    var modal = new bootstrap.Modal(document.getElementById('modalCajon'));
+    modal.show();
+}
+</script>
+{% endblock %}
