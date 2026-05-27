@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-4">
     <h3 class="fw-bold" style="color: #1F4E79;">🖥️ Reserva de Escritorios</h3>
-    <p class="text-muted">Selecciona la fecha y el escritorio que quieres reservar.</p>
+    <p class="text-muted">Selecciona una fecha y haz clic en un escritorio disponible para reservarlo.</p>
 </div>
 
 <div class="card p-4 mb-4">
@@ -18,37 +18,88 @@
             <div class="col-md-2 mt-2">
                 <button type="submit" class="btn btn-primary w-100">Ver disponibilidad</button>
             </div>
+            <div class="col-md-6 mt-2 d-flex align-items-center gap-4">
+                <span><span class="badge" style="background:#198754">●</span> Disponible</span>
+                <span><span class="badge" style="background:#dc3545">●</span> Ocupado</span>
+                <span><span class="badge" style="background:#ffc107">●</span> Tu reserva</span>
+            </div>
         </div>
     </form>
 </div>
 
-{% if espacios %}
-<div class="row g-3">
-    {% for e in espacios %}
-    <div class="col-md-3">
-        <div class="card p-3 text-center
-            {% if e.reservado %}border-danger{% else %}border-success{% endif %}">
-            <div style="font-size:2rem;">🖥️</div>
-            <h6 class="fw-bold mt-2">{{ e.nombre }}</h6>
-            {% if e.reservado %}
-                <span class="badge bg-danger">Ocupado</span>
+{% if espacios_por_zona %}
+{% for zona, escritorios in espacios_por_zona.items() %}
+<div class="card mb-4 p-4">
+    <h5 class="fw-bold mb-3" style="color:#1F4E79;">📍 {{ zona }}</h5>
+    <div class="d-flex flex-wrap gap-2">
+        {% for e in escritorios %}
+            {% if e.mi_reserva %}
+                <button class="btn btn-warning btn-sm desk-btn"
+                        title="{{ e.nombre }} — Tu reserva"
+                        disabled>
+                    {{ e.nombre }}
+                </button>
+            {% elif e.reservado %}
+                <button class="btn btn-danger btn-sm desk-btn"
+                        title="{{ e.nombre }} — Ocupado"
+                        disabled>
+                    {{ e.nombre }}
+                </button>
             {% else %}
-                <span class="badge bg-success mb-2">Disponible</span>
-                <form method="POST" action="{{ url_for('main.reservar_escritorio') }}">
-                    <input type="hidden" name="espacio_id" value="{{ e.id }}">
-                    <input type="hidden" name="fecha" value="{{ fecha_sel }}">
-                    <button type="submit" class="btn btn-outline-success btn-sm w-100">
-                        Reservar
-                    </button>
-                </form>
+                <button class="btn btn-success btn-sm desk-btn"
+                        title="{{ e.nombre }} — Disponible"
+                        onclick="confirmarReserva('{{ e.id }}', '{{ e.nombre }}', '{{ fecha_sel }}')">
+                    {{ e.nombre }}
+                </button>
             {% endif %}
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
+{% endfor %}
 {% else %}
 <div class="alert alert-info">
     Selecciona una fecha para ver la disponibilidad de escritorios.
 </div>
 {% endif %}
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="modalReserva" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" style="color:#1F4E79;">Confirmar reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Confirmas la reserva del <strong id="nombreEscritorio"></strong> para el día <strong>{{ fecha_sel }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('main.reservar_escritorio') }}" id="formReserva">
+                    <input type="hidden" name="espacio_id" id="inputEspacioId">
+                    <input type="hidden" name="fecha" value="{{ fecha_sel }}">
+                    <button type="submit" class="btn btn-primary">Confirmar reserva</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.desk-btn {
+    width: 70px;
+    height: 50px;
+    font-size: 11px;
+    font-weight: 600;
+}
+</style>
+
+<script>
+function confirmarReserva(id, nombre, fecha) {
+    document.getElementById('nombreEscritorio').textContent = nombre;
+    document.getElementById('inputEspacioId').value = id;
+    var modal = new bootstrap.Modal(document.getElementById('modalReserva'));
+    modal.show();
+}
+</script>
 {% endblock %}

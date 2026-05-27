@@ -61,15 +61,24 @@ def escritorios():
     hoy = date.today().isoformat()
     fecha_sel = request.args.get('fecha', hoy)
     espacios = Espacio.query.filter_by(tipo='escritorio', activo=True).all()
+
+    reservas_dia = Reserva.query.filter_by(fecha=fecha_sel, estado='activa').all()
+    reservados_ids = {r.espacio_id for r in reservas_dia}
+    mi_reserva_ids = {r.espacio_id for r in reservas_dia if r.user_id == current_user.id}
+
     for e in espacios:
-        reserva = Reserva.query.filter_by(
-            espacio_id=e.id,
-            fecha=fecha_sel,
-            estado='activa'
-        ).first()
-        e.reservado = True if reserva else False
+        e.reservado = e.id in reservados_ids
+        e.mi_reserva = e.id in mi_reserva_ids
+
+    espacios_por_zona = {
+        'Zona 1': [e for e in espacios if e.descripcion == 'Zona 1'],
+        'Zona 2': [e for e in espacios if e.descripcion == 'Zona 2'],
+        'Zona 3': [e for e in espacios if e.descripcion == 'Zona 3'],
+        'Zona 4': [e for e in espacios if e.descripcion == 'Zona 4'],
+    }
+
     return render_template('escritorios.html',
-                           espacios=espacios,
+                           espacios_por_zona=espacios_por_zona,
                            fecha_sel=fecha_sel,
                            hoy=hoy)
 
