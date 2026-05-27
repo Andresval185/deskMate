@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Escritorios{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">🖥️ Reserva de Escritorios</h3>
+    <p class="text-muted">Selecciona la fecha y el escritorio que quieres reservar.</p>
+</div>
+
+<div class="card p-4 mb-4">
+    <form method="GET">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Fecha</label>
+                <input type="date" name="fecha" class="form-control"
+                       value="{{ fecha_sel }}" min="{{ hoy }}" required>
+            </div>
+            <div class="col-md-2 mt-2">
+                <button type="submit" class="btn btn-primary w-100">Ver disponibilidad</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if espacios %}
+<div class="row g-3">
+    {% for e in espacios %}
+    <div class="col-md-3">
+        <div class="card p-3 text-center
+            {% if e.reservado %}border-danger{% else %}border-success{% endif %}">
+            <div style="font-size:2rem;">🖥️</div>
+            <h6 class="fw-bold mt-2">{{ e.nombre }}</h6>
+            {% if e.reservado %}
+                <span class="badge bg-danger">Ocupado</span>
+            {% else %}
+                <span class="badge bg-success mb-2">Disponible</span>
+                <form method="POST" action="{{ url_for('main.reservar_escritorio') }}">
+                    <input type="hidden" name="espacio_id" value="{{ e.id }}">
+                    <input type="hidden" name="fecha" value="{{ fecha_sel }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                        Reservar
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    Selecciona una fecha para ver la disponibilidad de escritorios.
+</div>
+{% endif %}
+{% endblock %}

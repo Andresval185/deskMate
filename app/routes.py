@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Espacio, Reserva
+from datetime import date
 
 auth = Blueprint('auth', __name__)
 main = Blueprint('main', __name__)
@@ -53,26 +54,76 @@ def logout():
 def inicio():
     return render_template('inicio.html')
 
-@main.route('/escritorios')
+# ── Escritorios ────────────────────────────────────────
+@main.route('/escritorios', methods=['GET', 'POST'])
 @login_required
 def escritorios():
+    hoy = date.today().isoformat()
+    fecha_sel = request.args.get('fecha', hoy)
     espacios = Espacio.query.filter_by(tipo='escritorio', activo=True).all()
-    return render_template('escritorios.html', espacios=espacios)
+    for e in espacios:
+        reserva = Reserva.query.filter_by(
+            espacio_id=e.id,
+            fecha=fecha_sel,
+            estado='activa'
+        ).first()
+        e.reservado = True if reserva else False
+    return render_template('escritorios.html',
+                           espacios=espacios,
+                           fecha_sel=fecha_sel,
+                           hoy=hoy)
 
+@main.route('/reservar-escritorio', methods=['POST'])
+@login_required
+def reservar_escritorio():
+    espacio_id = request.form.get('espacio_id')
+    fecha = request.form.get('fecha')
+    conflicto = Reserva.query.filter_by(
+        espacio_id=espacio_id,
+        fecha=fecha,
+        estado='activa'
+    ).first()
+    if conflicto:
+        flash('Este escritorio ya fue reservado para esa fecha.', 'danger')
+        return redirect(url_for('main.escritorios'))
+    mi_reserva = Reserva.query.filter_by(
+        user_id=current_user.id,
+        fecha=fecha,
+        estado='activa'
+    ).join(Espacio).filter(Espacio.tipo == 'escritorio').first()
+    if mi_reserva:
+        flash('Ya tienes un escritorio reservado para ese día.', 'warning')
+        return redirect(url_for('main.escritorios'))
+    nueva = Reserva(
+        user_id=current_user.id,
+        espacio_id=espacio_id,
+        fecha=fecha,
+        estado='activa'
+    )
+    db.session.add(nueva)
+    db.session.commit()
+    flash('¡Escritorio reservado exitosamente!', 'success')
+    return redirect(url_for('main.mis_reservas'))
+
+# ── Salas ──────────────────────────────────────────────
 @main.route('/salas')
 @login_required
 def salas():
     espacios = Espacio.query.filter_by(tipo='sala', activo=True).all()
     return render_template('salas.html', espacios=espacios)
 
+# ── Estacionamiento ────────────────────────────────────
 @main.route('/estacionamiento')
 @login_required
 def estacionamiento():
     espacios = Espacio.query.filter_by(tipo='estacionamiento', activo=True).all()
     return render_template('estacionamiento.html', espacios=espacios)
 
+# ── Mis reservas ───────────────────────────────────────
 @main.route('/mis-reservas')
 @login_required
 def mis_reservas():
-    reservas = Reserva.query.filter_by(user_id=current_user.id).order_by(Reserva.fecha.desc()).all()
+    reservas = Reserva.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Reserva.fecha.desc()).all()
     return render_template('mis_reservas.html', reservas=reservas)
