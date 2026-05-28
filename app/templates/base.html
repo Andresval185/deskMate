@@ -58,6 +58,12 @@
                    href="{{ url_for('main.mis_reservas') }}">
                     <i class="bi bi-calendar-check me-2"></i>Mis reservas
                 </a>
+                {% if current_user.rol == 'admin' %}
+                <a class="nav-link {% if request.endpoint == 'main.admin' %}active{% endif %}"
+                   href="{{ url_for('main.admin') }}">
+                    <i class="bi bi-gear me-2"></i>Panel Admin
+                </a>
+                {% endif %}
             </nav>
         </div>
         <div class="col-md-10 py-4 px-4">
