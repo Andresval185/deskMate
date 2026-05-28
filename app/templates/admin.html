@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Panel de Administrador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">⚙️ Panel de Administrador</h3>
+    <p class="text-muted">Vista general de ocupación del día {{ hoy }}</p>
+</div>
+
+<!-- Tarjetas de ocupación -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <div style="font-size:2.5rem;">🖥️</div>
+            <h5 class="fw-bold mt-2">Escritorios</h5>
+            <h2 class="fw-bold" style="color:#1F4E79;">{{ escritorios_ocupados }} / {{ total_escritorios }}</h2>
+            <p class="text-muted">ocupados hoy</p>
+            <div class="progress mt-2">
+                <div class="progress-bar" style="width: {{ (escritorios_ocupados / total_escritorios * 100) | int }}%; background:#1F4E79;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <div style="font-size:2.5rem;">🏛️</div>
+            <h5 class="fw-bold mt-2">Salas de Juntas</h5>
+            <h2 class="fw-bold" style="color:#1F4E79;">{{ salas_ocupadas }} / {{ total_salas }}</h2>
+            <p class="text-muted">ocupadas hoy</p>
+            <div class="progress mt-2">
+                <div class="progress-bar" style="width: {{ (salas_ocupadas / total_salas * 100) | int if total_salas > 0 else 0 }}%; background:#1F4E79;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <div style="font-size:2.5rem;">🚗</div>
+            <h5 class="fw-bold mt-2">Estacionamiento</h5>
+            <h2 class="fw-bold" style="color:#1F4E79;">{{ cajones_ocupados }} / {{ total_cajones }}</h2>
+            <p class="text-muted">cajones ocupados hoy</p>
+            <div class="progress mt-2">
+                <div class="progress-bar" style="width: {{ (cajones_ocupados / total_cajones * 100) | int if total_cajones > 0 else 0 }}%; background:#1F4E79;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reservas recientes -->
+<div class="card p-4 mb-4">
+    <h5 class="fw-bold mb-3" style="color:#1F4E79;">📋 Reservas Recientes</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead style="background:#1F4E79; color:white;">
+                <tr>
+                    <th>Colaborador</th>
+                    <th>Espacio</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservas_recientes %}
+                <tr>
+                    <td><strong>{{ r.user.nombre }}</strong><br>
+                        <small class="text-muted">{{ r.user.email }}</small>
+                    </td>
+                    <td>{{ r.espacio.nombre }}</td>
+                    <td>
+                        {% if r.espacio.tipo == 'escritorio' %}🖥️ Escritorio
+                        {% elif r.espacio.tipo == 'sala' %}🏛️ Sala
+                        {% else %}🚗 Estacionamiento{% endif %}
+                    </td>
+                    <td>{{ r.fecha }}</td>
+                    <td>
+                        {% if r.estado == 'activa' %}
+                            <span class="badge bg-success">Activa</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelada</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Usuarios -->
+<div class="card p-4">
+    <h5 class="fw-bold mb-3" style="color:#1F4E79;">👥 Usuarios registrados</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead style="background:#1F4E79; color:white;">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td><strong>{{ u.nombre }}</strong></td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        {% if u.rol == 'admin' %}
+                            <span class="badge bg-danger">Admin</span>
+                        {% else %}
+                            <span class="badge bg-primary">Colaborador</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.activo %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactivo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
