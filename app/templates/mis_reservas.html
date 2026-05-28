@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Mis Reservas{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold" style="color: #1F4E79;">📅 Mis Reservas</h3>
+    <p class="text-muted">Aquí puedes ver y cancelar tus reservas activas.</p>
+</div>
+
+{% if reservas %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead style="background:#1F4E79; color:white;">
+            <tr>
+                <th>Espacio</th>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+                <td><strong>{{ r.espacio.nombre }}</strong></td>
+                <td>
+                    {% if r.espacio.tipo == 'escritorio' %}🖥️ Escritorio
+                    {% elif r.espacio.tipo == 'sala' %}🏛️ Sala
+                    {% else %}🚗 Estacionamiento{% endif %}
+                </td>
+                <td>{{ r.fecha }}</td>
+                <td>
+                    {% if r.hora_inicio %}
+                        {{ r.hora_inicio }} — {{ r.hora_fin }}
+                    {% else %}
+                        Día completo
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.estado == 'activa' %}
+                        <span class="badge bg-success">Activa</span>
+                    {% else %}
+                        <span class="badge bg-danger">Cancelada</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.estado == 'activa' %}
+                    <form method="POST" action="{{ url_for('main.cancelar_reserva', reserva_id=r.id) }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('¿Seguro que quieres cancelar esta reserva?')">
+                            Cancelar
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No tienes reservas aún.
+    <a href="{{ url_for('main.escritorios') }}">Reserva un escritorio</a>,
+    <a href="{{ url_for('main.salas') }}">una sala</a> o
+    <a href="{{ url_for('main.estacionamiento') }}">un cajón de estacionamiento</a>.
+</div>
+{% endif %}
+{% endblock %}
